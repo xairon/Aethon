@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "backend",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["server/main.py"],
+      "port": 8765
+    },
+    {
+      "name": "frontend",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["web/dev.js"],
+      "port": 5173
+    },
+    {
+      "name": "jarvis-gui-legacy",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["gui_main.py"],
+      "port": 8741
+    }
+  ]
+}

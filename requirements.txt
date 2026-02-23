@@ -1,0 +1,30 @@
+# Jarvis — Dépendances
+# STT
+faster-whisper>=1.1.0
+
+# TTS
+kokoro>=0.9.4
+soundfile
+
+# Audio I/O
+sounddevice
+numpy
+
+# LLM
+httpx
+google-genai>=1.0.0
+
+# Wake word
+openwakeword
+
+# VAD (Silero VAD via torch hub)
+torch
+torchaudio
+
+# GUI
+PyQt6>=6.7
+
+# API HTTP (Phase 3)
+aiohttp>=3.9
+
+# Utilitaires
