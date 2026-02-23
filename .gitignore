@@ -33,5 +33,5 @@ Thumbs.db
 Desktop.ini
 .DS_Store
 
-# Claude Code local settings
-.claude/settings.local.json
+# Claude Code
+.claude/
