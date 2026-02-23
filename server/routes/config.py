@@ -1,4 +1,4 @@
-"""Routes REST pour la configuration Jarvis."""
+"""Routes REST pour la configuration Aethon."""
 
 import logging
 

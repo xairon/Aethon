@@ -1,15 +1,15 @@
 import { create } from 'zustand'
-import type { JarvisConfig } from '../types/config'
+import type { AethonConfig } from '../types/config'
 import { usePipeline } from './usePipeline'
 
 interface ConfigStore {
-  config: JarvisConfig | null
+  config: AethonConfig | null
   loading: boolean
   saving: boolean
   dirty: boolean
 
   fetchConfig: () => Promise<void>
-  updateConfig: (partial: Partial<JarvisConfig>) => void
+  updateConfig: (partial: Partial<AethonConfig>) => void
   saveConfig: () => Promise<void>
   resetConfig: () => Promise<void>
 }
@@ -43,7 +43,7 @@ export const useConfig = create<ConfigStore>((set, get) => ({
     try {
       const res = await fetch('/api/config')
       if (!res.ok) throw new Error(`Fetch failed: HTTP ${res.status}`)
-      const config: JarvisConfig = await res.json()
+      const config: AethonConfig = await res.json()
       set({ config, loading: false, dirty: false })
     } catch (err) {
       console.error('[Config] fetch failed:', err)
@@ -54,7 +54,7 @@ export const useConfig = create<ConfigStore>((set, get) => ({
   updateConfig: (partial) => {
     const current = get().config
     if (!current) return
-    const merged = deepMerge(current as any, partial as any) as JarvisConfig
+    const merged = deepMerge(current as any, partial as any) as AethonConfig
     set({ config: merged, dirty: true })
   },
 

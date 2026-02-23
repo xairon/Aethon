@@ -1,4 +1,4 @@
-"""Jarvis — Point d'entrée principal (CLI)."""
+"""Aethon — Point d'entrée principal (CLI)."""
 
 import argparse
 import logging
@@ -18,8 +18,8 @@ if os.path.isdir(_espeak_dir) and _espeak_dir not in os.environ.get("PATH", ""):
 # Supprimer les warnings HuggingFace symlinks
 os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
 
-from jarvis.config import JarvisConfig
-from jarvis.pipeline import JarvisPipeline
+from aethon.config import AethonConfig
+from aethon.pipeline import AethonPipeline
 
 
 def setup_logging(verbose: bool = False):
@@ -39,7 +39,7 @@ def setup_logging(verbose: bool = False):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Jarvis — Assistant vocal hybride")
+    parser = argparse.ArgumentParser(description="Aethon — Assistant vocal hybride")
     parser.add_argument(
         "--no-wake-word",
         action="store_true",
@@ -122,10 +122,10 @@ def main():
     args = parser.parse_args()
 
     setup_logging(args.verbose)
-    log = logging.getLogger("jarvis")
+    log = logging.getLogger("aethon")
 
     # Configuration — charger depuis fichier (fallback vers défauts)
-    config = JarvisConfig.load()
+    config = AethonConfig.load()
 
     # Surcharges CLI
     config.llm.backend = args.backend
@@ -174,7 +174,7 @@ def main():
         tts_display = f"Kokoro ({config.tts.kokoro_voice})"
 
     log.info("╔══════════════════════════════════════╗")
-    log.info("║        JARVIS — Assistant Vocal       ║")
+    log.info("║        AETHON — Assistant Vocal       ║")
     log.info("╠══════════════════════════════════════╣")
     log.info("║  LLM : %-30s ║", llm_display)
     log.info("║  STT : %-30s ║", config.stt.model)
@@ -188,7 +188,7 @@ def main():
     log.info("╚══════════════════════════════════════╝")
 
     # Lancer le pipeline
-    pipeline = JarvisPipeline(config)
+    pipeline = AethonPipeline(config)
 
     try:
         pipeline.load_all()

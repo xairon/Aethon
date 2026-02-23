@@ -1,4 +1,4 @@
-"""Serveur Web Jarvis — FastAPI + WebSocket.
+"""Serveur Web Aethon — FastAPI + WebSocket.
 
 Point d'entree du backend web. Lance un serveur FastAPI sur le port 8765
 avec des routes REST (config, voix, peripheriques) et un endpoint WebSocket
@@ -17,7 +17,7 @@ import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-# Ajouter la racine du projet au path pour les imports jarvis.*
+# Ajouter la racine du projet au path pour les imports aethon.*
 _project_root = str(Path(__file__).resolve().parent.parent)
 if _project_root not in sys.path:
     sys.path.insert(0, _project_root)
@@ -37,14 +37,14 @@ log = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     """Lifecycle du serveur : initialise le bridge au demarrage, cleanup a l'arret."""
     bridge.set_loop(asyncio.get_running_loop())
-    log.info("Serveur Jarvis demarre sur http://127.0.0.1:8765")
+    log.info("Serveur Aethon demarre sur http://127.0.0.1:8765")
     yield
     # Arret propre du pipeline si actif
     await bridge.stop()
-    log.info("Serveur Jarvis arrete.")
+    log.info("Serveur Aethon arrete.")
 
 
-app = FastAPI(title="Jarvis", lifespan=lifespan)
+app = FastAPI(title="Aethon", lifespan=lifespan)
 
 # CORS — necessaire en dev (Vite sur localhost:5173), inoffensif en prod
 app.add_middleware(
@@ -69,7 +69,7 @@ if dist_dir.exists():
 
 if __name__ == "__main__":
     # Configuration des logs — console + fichier pour capturer les crashes
-    _log_file = Path(__file__).resolve().parent.parent / "jarvis_server.log"
+    _log_file = Path(__file__).resolve().parent.parent / "aethon_server.log"
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s %(name)s %(levelname)s %(message)s",

@@ -1,4 +1,4 @@
-"""Jarvis — Point d'entrée GUI."""
+"""Aethon — Point d'entrée GUI."""
 
 import os
 import sys
@@ -12,8 +12,8 @@ import torch  # noqa: E402
 if torch.cuda.is_available():
     torch.cuda.init()
 
-from jarvis.gui.app import JarvisApp  # noqa: E402
+from aethon.gui.app import AethonApp  # noqa: E402
 
 if __name__ == "__main__":
-    app = JarvisApp(sys.argv)
+    app = AethonApp(sys.argv)
     sys.exit(app.exec())

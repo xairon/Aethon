@@ -1,4 +1,4 @@
-"""Modeles Pydantic pour les messages WebSocket Jarvis."""
+"""Modeles Pydantic pour les messages WebSocket Aethon."""
 
 from pydantic import BaseModel
 

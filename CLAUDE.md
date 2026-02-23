@@ -1,8 +1,8 @@
-# Jarvis — Assistant Vocal Hybride (Local + Cloud)
+# Aethon — Assistant Vocal Hybride (Local + Cloud)
 
 ## Présentation
 
-Jarvis est un assistant vocal hybride, temps réel, tournant sur GPU NVIDIA. Il écoute via le micro, transcrit la parole, génère une réponse via LLM (local Ollama ou cloud Gemini), et la synthétise en voix naturelle.
+Aethon est un assistant vocal hybride, temps réel, tournant sur GPU NVIDIA. Il écoute via le micro, transcrit la parole, génère une réponse via LLM (local Ollama ou cloud Gemini), et la synthétise en voix naturelle.
 
 Deux modes : **CLI** (`main.py`) et **GUI** (`gui_main.py`) avec orb animé + chat + system tray.
 
@@ -40,13 +40,13 @@ E:\TTS\
 ├── gui_main.py              # Point d'entrée GUI
 ├── setup.bat                # Installation automatique
 ├── requirements.txt         # Dépendances pip
-├── jarvis_config.json       # Config persistante JSON
-├── jarvis_memory.db         # Mémoire SQLite
+├── aethon_config.json       # Config persistante JSON
+├── aethon_memory.db         # Mémoire SQLite
 │
 ├── third_party/
 │   └── CosyVoice/           # Repo CosyVoice2 cloné (GPU voice cloning)
 │
-└── jarvis/
+└── aethon/
     ├── config.py            # Dataclasses : PersonaConfig, LLMConfig, TTSConfig, etc.
     ├── pipeline.py          # Orchestrateur STT → LLM → TTS + barge-in + wake word
     │
@@ -83,10 +83,10 @@ E:\TTS\
     │   └── server.py        # Serveur HTTP aiohttp (port 8741)
     │
     └── gui/
-        ├── app.py           # JarvisApp : orchestre tray + fenêtre + worker
+        ├── app.py           # AethonApp : orchestre tray + fenêtre + worker
         ├── main_window.py   # Layout : titre → orb → état → level meter → chat → boutons
         ├── settings_dialog.py  # QDialog 4 onglets (Persona, Intelligence, Tools, Advanced)
-        ├── worker.py        # QThread encapsulant JarvisPipeline
+        ├── worker.py        # QThread encapsulant AethonPipeline
         ├── tray.py          # Icône système avec couleurs d'état
         ├── state.py         # Enum PipelineState + couleurs Catppuccin
         ├── theme.py         # QSS Catppuccin Mocha
@@ -147,7 +147,7 @@ STOPPED → LOADING → IDLE ⇄ LISTENING → THINKING → SPEAKING → IDLE
 ## Configuration (dataclasses)
 
 ```python
-JarvisConfig
+AethonConfig
 ├── persona: PersonaConfig    # Nom, langue, wake word, voix, instructions, backend TTS
 ├── llm: LLMConfig           # Backend (gemini/ollama), modèle, température, API key
 ├── tts: TTSConfig           # Backend (kokoro/chatterbox), voix, vitesse, émotion
@@ -157,7 +157,7 @@ JarvisConfig
 └── tools: ToolsConfig       # DateTime, SystemInfo, API server, port
 ```
 
-Sauvegarde en `jarvis_config.json`. Config modifiable via GUI (stop → save → restart pipeline).
+Sauvegarde en `aethon_config.json`. Config modifiable via GUI (stop → save → restart pipeline).
 
 ### PersonaConfig — Système d'instructions toggleables
 
@@ -187,7 +187,7 @@ python main.py -v                      # Debug
 ## Conventions de code
 
 - **Langue du code** : docstrings et commentaires en **français**, noms de variables/fonctions en **anglais**
-- **Config** : dataclasses dans `jarvis/config.py`, jamais de valeurs hardcodées ailleurs
+- **Config** : dataclasses dans `aethon/config.py`, jamais de valeurs hardcodées ailleurs
 - **Logs** : `logging` standard, un logger par module (`log = logging.getLogger(__name__)`)
 - **Threading** : signaux Qt (pyqtSignal) pour la communication GUI ↔ pipeline, jamais d'accès direct cross-thread
 - **Imports lourds** : lazy loading dans les méthodes `load()` (torch, kokoro, faster_whisper, google.genai)

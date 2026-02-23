@@ -12,7 +12,7 @@ Aethon listens through your microphone, transcribes speech in real-time, generat
 - **Multi-TTS** — Chatterbox Multilingual (GPU, 23 languages, zero-shot voice cloning) or Kokoro 82M (CPU fallback)
 - **Real-time STT** — faster-whisper with CTranslate2 CUDA acceleration
 - **Barge-in** — interrupt the assistant mid-sentence, it stops and listens
-- **Wake word** — OpenWakeWord with multiple hotwords (hey_jarvis, alexa, hey_mycroft, ok_google)
+- **Wake word** — OpenWakeWord with multiple hotwords
 - **Emotion-aware TTS** — LLM emits emotion tags, TTS adjusts expressiveness per segment
 - **Voice cloning** — zero-shot cloning from a short audio sample via Chatterbox
 - **Long-term memory** — SQLite-backed fact extraction and recall across sessions
@@ -105,7 +105,7 @@ On first launch, models are downloaded automatically (~30s).
 
 ## Configuration
 
-All settings are saved to `jarvis_config.json` and editable via the GUI settings dialog.
+All settings are saved to `aethon_config.json` and editable via the GUI settings dialog.
 
 | Section | Options |
 |---------|---------|
@@ -122,7 +122,7 @@ All settings are saved to `jarvis_config.json` and editable via the GUI settings
 ```
 ├── main.py              # CLI entry point
 ├── gui_main.py          # GUI entry point
-├── jarvis/
+├── aethon/
 │   ├── pipeline.py      # Main orchestrator (STT → LLM → TTS + barge-in)
 │   ├── config.py        # Dataclass configuration
 │   ├── audio/           # Microphone capture, playback, AGC

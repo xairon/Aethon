@@ -1,4 +1,4 @@
-# Jarvis — Create desktop shortcut
+# Aethon — Create desktop shortcut
 # Run: powershell -ExecutionPolicy Bypass -File install_shortcut.ps1
 
 $projectDir = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -9,14 +9,14 @@ if (-not $pythonw) {
 
 $WshShell = New-Object -ComObject WScript.Shell
 $desktopPath = [Environment]::GetFolderPath("Desktop")
-$shortcutPath = Join-Path $desktopPath "Jarvis.lnk"
+$shortcutPath = Join-Path $desktopPath "Aethon.lnk"
 
 $shortcut = $WshShell.CreateShortcut($shortcutPath)
 $shortcut.TargetPath = $pythonw
-$shortcut.Arguments = "`"$projectDir\jarvis.pyw`""
+$shortcut.Arguments = "`"$projectDir\aethon.pyw`""
 $shortcut.WorkingDirectory = $projectDir
-$shortcut.Description = "Jarvis Voice Assistant"
+$shortcut.Description = "Aethon Voice Assistant"
 $shortcut.Save()
 
 Write-Host "Shortcut created: $shortcutPath" -ForegroundColor Green
-Write-Host "Double-click 'Jarvis' on your desktop to launch!" -ForegroundColor Cyan
+Write-Host "Double-click 'Aethon' on your desktop to launch!" -ForegroundColor Cyan

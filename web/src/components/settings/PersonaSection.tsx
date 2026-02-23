@@ -3,7 +3,7 @@ import { Section, Field, GlassToggle, GlassCheckbox } from './Section'
 import { LANGUAGES } from '../../lib/constants'
 
 const WAKE_PHRASES = [
-  { value: 'hey_jarvis', label: 'Hey Jarvis' },
+  { value: 'hey_jarvis', label: 'Hey Aethon' },
   { value: 'alexa', label: 'Alexa' },
   { value: 'hey_mycroft', label: 'Hey Mycroft' },
   { value: 'ok_google', label: 'OK Google' },

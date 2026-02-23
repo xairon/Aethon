@@ -89,7 +89,7 @@ export interface ToolsConfig {
   api_port: number
 }
 
-export interface JarvisConfig {
+export interface AethonConfig {
   persona: PersonaConfig
   llm: LLMConfig
   tts: TTSConfig

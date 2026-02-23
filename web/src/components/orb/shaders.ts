@@ -1,4 +1,4 @@
-/** GLSL Shaders for the Jarvis Orb — Digital Light Artifacts (Red & Blue) */
+/** GLSL Shaders for the Aethon Orb — Digital Light Artifacts (Red & Blue) */
 
 export const vertexShader = /* glsl */ `
   out vec2 vUv;

@@ -1,6 +1,6 @@
 @echo off
 echo ==========================================
-echo   JARVIS - Installation des dependances
+echo   AETHON - Installation des dependances
 echo ==========================================
 echo.
 
@@ -69,7 +69,7 @@ echo.
 echo ==========================================
 echo   Installation terminee !
 echo.
-echo   Pour lancer Jarvis:
+echo   Pour lancer Aethon:
 echo     venv\Scripts\activate
 echo     python main.py --no-wake-word
 echo.

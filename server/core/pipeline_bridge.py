@@ -1,4 +1,4 @@
-"""Bridge thread/async — connecte JarvisPipeline (synchrone) au serveur FastAPI (async).
+"""Bridge thread/async — connecte AethonPipeline (synchrone) au serveur FastAPI (async).
 
 Le pipeline tourne dans un thread dedie. Les callbacks (on_state_change, on_transcript,
 on_response, on_audio_level) sont bridges vers l'event loop asyncio principal via
@@ -10,8 +10,8 @@ import logging
 import threading
 import time
 
-from jarvis.config import JarvisConfig
-from jarvis.pipeline import JarvisPipeline
+from aethon.config import AethonConfig
+from aethon.pipeline import AethonPipeline
 from server.core.connection_manager import ConnectionManager
 
 log = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ STATE_LABELS = {
 
 
 class PipelineBridge:
-    """Pont entre JarvisPipeline (thread synchrone) et FastAPI (async).
+    """Pont entre AethonPipeline (thread synchrone) et FastAPI (async).
 
     Gere le cycle de vie du pipeline : creation, demarrage dans un thread,
     arret propre, et relay des callbacks vers les WebSocket clients.
@@ -36,10 +36,10 @@ class PipelineBridge:
 
     def __init__(self, manager: ConnectionManager):
         self._manager = manager
-        self._pipeline: JarvisPipeline | None = None
+        self._pipeline: AethonPipeline | None = None
         self._thread: threading.Thread | None = None
         self._loop: asyncio.AbstractEventLoop | None = None
-        self._config: JarvisConfig = JarvisConfig.load()
+        self._config: AethonConfig = AethonConfig.load()
         self._current_state: str = "stopped"
         self._last_audio_level_time: float = 0.0
         self._start_lock: asyncio.Lock | None = None
@@ -52,7 +52,7 @@ class PipelineBridge:
         log.info("Event loop enregistre, bridge pret.")
 
     @property
-    def config(self) -> JarvisConfig:
+    def config(self) -> AethonConfig:
         """Configuration actuelle."""
         return self._config
 
@@ -92,11 +92,11 @@ class PipelineBridge:
                 log.info("Demarrage du pipeline...")
 
                 # Recharger la config depuis le disque (l'utilisateur a pu la modifier)
-                self._config = JarvisConfig.load()
+                self._config = AethonConfig.load()
                 log.info("Config chargee: tts=%s, llm=%s",
                          self._config.tts.backend, self._config.llm.backend)
 
-                self._pipeline = JarvisPipeline(self._config)
+                self._pipeline = AethonPipeline(self._config)
 
                 # Brancher les callbacks (thread pipeline → broadcast WebSocket)
                 self._pipeline.on_state_change = self._bridge_state
@@ -115,7 +115,7 @@ class PipelineBridge:
 
                 # Lancer la boucle principale dans un thread dedie
                 self._thread = threading.Thread(
-                    target=self._run_pipeline, daemon=True, name="jarvis-pipeline"
+                    target=self._run_pipeline, daemon=True, name="aethon-pipeline"
                 )
                 self._thread.start()
                 log.info("Pipeline demarre dans le thread '%s'.", self._thread.name)
@@ -203,7 +203,7 @@ class PipelineBridge:
                 current[key].update(value)
             else:
                 current[key] = value
-        self._config = JarvisConfig.from_dict(current)
+        self._config = AethonConfig.from_dict(current)
         self._config.save()
         log.info("Configuration mise a jour et sauvegardee.")
 

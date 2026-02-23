@@ -1,4 +1,4 @@
-/** Obsidian Dark theme — matches jarvis/gui/theme.py */
+/** Obsidian Dark theme — matches aethon/gui/theme.py */
 
 export const colors = {
   bg: {

@@ -46,7 +46,7 @@ def _validate_voice_id(voice_id: str) -> None:
 
 def _get_library(bridge: PipelineBridge):
     """Cree une instance VoiceLibrary depuis la config du bridge."""
-    from jarvis.voices.library import VoiceLibrary
+    from aethon.voices.library import VoiceLibrary
     return VoiceLibrary(bridge.config.persona.voices_path)
 
 

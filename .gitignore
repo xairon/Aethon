@@ -8,8 +8,8 @@ dist/
 build/
 
 # Runtime data
-jarvis_config.json
-jarvis_memory.db
+*_config.json
+*_memory.db
 *.log
 
 # Third-party models (too large for git)
