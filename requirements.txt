@@ -21,10 +21,12 @@ openwakeword
 torch
 torchaudio
 
-# GUI
-PyQt6>=6.7
+# Web server
+fastapi>=0.115
+uvicorn[standard]>=0.30
+websockets>=13.0
 
-# API HTTP (Phase 3)
+# API HTTP (legacy CLI)
 aiohttp>=3.9
 
 # Utilitaires

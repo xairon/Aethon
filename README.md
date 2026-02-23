@@ -2,7 +2,7 @@
 
 **Real-time hybrid voice assistant** — local + cloud, GPU-accelerated, with barge-in support.
 
-Aethon listens through your microphone, transcribes speech in real-time, generates intelligent responses via LLM (local or cloud), and speaks back with natural-sounding voice synthesis. It features wake word detection, long-term memory, function calling, and a full desktop GUI with an animated orb.
+Aethon listens through your microphone, transcribes speech in real-time, generates intelligent responses via LLM (local or cloud), and speaks back with natural-sounding voice synthesis. It features wake word detection, long-term memory, function calling, and a web interface with an animated orb.
 
 ---
 
@@ -18,9 +18,8 @@ Aethon listens through your microphone, transcribes speech in real-time, generat
 - **Long-term memory** — SQLite-backed fact extraction and recall across sessions
 - **Function calling** — extensible tool system (date/time, system info, custom tools)
 - **Google Search** — grounded responses with live web search via Gemini
-- **REST API** — HTTP server for external clients (Samsung Watch, home automation)
-- **Desktop GUI** — PyQt6 with animated orb, chat bubbles, toast notifications, system tray
-- **Web GUI** — Vite + React + TypeScript frontend with WebSocket streaming
+- **Web GUI** — React + Vite + TypeScript with WebGL orb, chat, and settings
+- **CLI mode** — lightweight terminal interface for headless use
 
 ---
 
@@ -54,8 +53,8 @@ STOPPED → LOADING → IDLE ⇄ LISTENING → THINKING → SPEAKING → IDLE
 | **Wake Word** | OpenWakeWord (ONNX) |
 | **Audio** | sounddevice (PortAudio) with AGC |
 | **Memory** | SQLite with fact extraction |
-| **GUI** | PyQt6 (desktop) / React + Vite (web) |
-| **API** | aiohttp REST + WebSocket |
+| **Backend** | FastAPI + WebSocket |
+| **Frontend** | React + Vite + TypeScript |
 | **Runtime** | Python 3.11, PyTorch cu124, CUDA 12.4 |
 
 ---
@@ -66,6 +65,7 @@ STOPPED → LOADING → IDLE ⇄ LISTENING → THINKING → SPEAKING → IDLE
 
 - **NVIDIA GPU** with CUDA 12.4+ drivers
 - **Python 3.11**
+- **Node.js** (for the web frontend)
 - **espeak-ng** — [download MSI](https://github.com/espeak-ng/espeak-ng/releases) (required for Kokoro TTS)
 - **Ollama** (optional) — only if using local LLM backend
 
@@ -84,13 +84,20 @@ venv\Scripts\activate
 pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu124
 pip install -r requirements.txt
 pip install chatterbox-tts  # GPU TTS (optional, requires numpy<1.26)
+
+# Frontend
+cd web && npm install && cd ..
 ```
 
 ### Running
 
 ```bash
-# Desktop GUI (recommended)
-python gui_main.py
+# Web GUI (recommended)
+start_aethon_web.bat
+
+# Or manually
+python server/main.py         # Backend (port 8765)
+cd web && npm run dev          # Frontend (port 5173)
 
 # CLI mode
 python main.py                    # with wake word
@@ -105,14 +112,14 @@ On first launch, models are downloaded automatically (~30s).
 
 ## Configuration
 
-All settings are saved to `aethon_config.json` and editable via the GUI settings dialog.
+All settings are saved to `aethon_config.json` and editable via the web settings drawer.
 
 | Section | Options |
 |---------|---------|
 | **Persona** | Name, language, wake word, voice, system instructions |
 | **Intelligence** | LLM backend, model, temperature, max tokens |
-| **TTS** | Backend (Kokoro/Chatterbox), voice, speed, emotion |
-| **Tools** | Function calling, Google Search, API server |
+| **Voice** | Backend (Kokoro/Chatterbox), voice, speed, emotion |
+| **Tools** | Function calling, Google Search |
 | **Advanced** | STT model, audio devices, memory, AGC |
 
 ---
@@ -121,8 +128,7 @@ All settings are saved to `aethon_config.json` and editable via the GUI settings
 
 ```
 ├── main.py              # CLI entry point
-├── gui_main.py          # GUI entry point
-├── aethon/
+├── aethon/              # Core Python package
 │   ├── pipeline.py      # Main orchestrator (STT → LLM → TTS + barge-in)
 │   ├── config.py        # Dataclass configuration
 │   ├── audio/           # Microphone capture, playback, AGC
@@ -132,10 +138,10 @@ All settings are saved to `aethon_config.json` and editable via the GUI settings
 │   ├── memory/          # SQLite long-term memory
 │   ├── wakeword/        # OpenWakeWord detection
 │   ├── tools/           # Function calling (datetime, sysinfo, extensible)
-│   ├── api/             # HTTP/WebSocket server
-│   └── gui/             # PyQt6 desktop interface
-├── server/              # FastAPI backend for web GUI
-├── web/                 # React + Vite web frontend
+│   ├── voices/          # Voice library management
+│   └── api/             # Legacy aiohttp server (CLI mode)
+├── server/              # FastAPI backend + WebSocket bridge
+├── web/                 # React + Vite + TypeScript frontend
 └── voices/              # Custom voice samples for cloning
 ```
 

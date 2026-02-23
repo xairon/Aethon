@@ -4,7 +4,7 @@
 
 Aethon est un assistant vocal hybride, temps réel, tournant sur GPU NVIDIA. Il écoute via le micro, transcrit la parole, génère une réponse via LLM (local Ollama ou cloud Gemini), et la synthétise en voix naturelle.
 
-Deux modes : **CLI** (`main.py`) et **GUI** (`gui_main.py`) avec orb animé + chat + system tray.
+Deux interfaces : **CLI** (`main.py`) et **Web** (`server/` + `web/`) avec orb animé + chat + settings.
 
 ---
 
@@ -20,8 +20,8 @@ Deux modes : **CLI** (`main.py`) et **GUI** (`gui_main.py`) avec orb animé + ch
 | **Audio** | sounddevice | PortAudio, capture 16kHz mono, lecture 24kHz, AGC intégré |
 | **Mémoire** | SQLite | Tables `memories` + `conversations`, threading.Lock |
 | **Tools** | Function calling Gemini | DateTimeTool, SystemInfoTool, extensible via Protocol |
-| **API** | aiohttp | Serveur HTTP local (port 8741), 4 endpoints REST |
-| **GUI** | PyQt6 | Orb animé, chat bubbles, toast, settings dialog, system tray |
+| **Backend** | FastAPI + WebSocket | Serveur Python, bridge pipeline ↔ web |
+| **Frontend** | React + Vite + TypeScript | Orb WebGL, chat, settings drawer |
 | **Runtime** | Python 3.11 + PyTorch cu124 | CUDA 12.4, venv Windows |
 
 ### Dépendances externes (hors pip)
@@ -29,6 +29,7 @@ Deux modes : **CLI** (`main.py`) et **GUI** (`gui_main.py`) avec orb animé + ch
 - **espeak-ng** : requis par Kokoro TTS (MSI, `C:\Program Files\eSpeak NG`)
 - **CUDA 12.4** : drivers NVIDIA compatibles
 - **Chatterbox** : `pip install chatterbox-tts` (si backend TTS = chatterbox)
+- **Node.js** : requis pour le frontend web (npm install dans `web/`)
 
 ---
 
@@ -37,68 +38,69 @@ Deux modes : **CLI** (`main.py`) et **GUI** (`gui_main.py`) avec orb animé + ch
 ```
 E:\TTS\
 ├── main.py                  # Point d'entrée CLI
-├── gui_main.py              # Point d'entrée GUI
+├── start_aethon_web.bat     # Lance backend + frontend web
 ├── setup.bat                # Installation automatique
 ├── requirements.txt         # Dépendances pip
 ├── aethon_config.json       # Config persistante JSON
 ├── aethon_memory.db         # Mémoire SQLite
 │
-├── third_party/
-│   └── CosyVoice/           # Repo CosyVoice2 cloné (GPU voice cloning)
+├── aethon/                  # Package Python principal
+│   ├── config.py            # Dataclasses : PersonaConfig, LLMConfig, TTSConfig, etc.
+│   ├── pipeline.py          # Orchestrateur STT → LLM → TTS + barge-in + wake word
+│   ├── audio/
+│   │   └── manager.py       # Capture micro + lecture HP + AGC + interruption
+│   ├── stt/
+│   │   └── transcriber.py   # faster-whisper, lazy loading GPU
+│   ├── tts/
+│   │   ├── base.py          # Interface TTS abstraite
+│   │   ├── kokoro.py        # Kokoro TTS (CPU, 10 voix FR/EN)
+│   │   ├── chatterbox.py    # Chatterbox Multilingual (GPU, 23 langues, clonage zero-shot)
+│   │   └── cosyvoice.py     # [legacy] CosyVoice2/3 (non utilisé)
+│   ├── llm/
+│   │   ├── base.py          # Interface LLM abstraite
+│   │   ├── ollama.py        # Client Ollama streaming, filtre <think>
+│   │   └── gemini.py        # Client Gemini streaming, function calling, Google Search
+│   ├── memory/
+│   │   └── store.py         # SQLite, extraction de faits, threading.Lock
+│   ├── wakeword/
+│   │   └── detector.py      # OpenWakeWord ONNX, normalisation conditionnelle
+│   ├── tools/
+│   │   ├── base.py          # Protocol Tool (name, description, parameters, execute)
+│   │   ├── registry.py      # ToolRegistry : register, dispatch, to_gemini_declarations
+│   │   ├── datetime_tool.py # Date/heure locale (mapping FR thread-safe)
+│   │   └── system_tool.py   # Info système (RAM, VRAM, disk, uptime)
+│   ├── voices/
+│   │   ├── library.py       # VoiceLibrary : gestion des voix locales
+│   │   └── __init__.py
+│   └── api/
+│       └── server.py        # Serveur HTTP aiohttp (port 8741, legacy CLI)
 │
-└── aethon/
-    ├── config.py            # Dataclasses : PersonaConfig, LLMConfig, TTSConfig, etc.
-    ├── pipeline.py          # Orchestrateur STT → LLM → TTS + barge-in + wake word
-    │
-    ├── audio/
-    │   └── manager.py       # Capture micro + lecture HP + AGC + interruption
-    │
-    ├── stt/
-    │   └── transcriber.py   # faster-whisper, lazy loading GPU
-    │
-    ├── tts/
-    │   ├── base.py          # Interface TTS abstraite
-    │   ├── kokoro.py        # Kokoro TTS (CPU, 10 voix FR/EN)
-    │   ├── chatterbox.py    # Chatterbox Multilingual (GPU, 23 langues, clonage zero-shot)
-    │   └── cosyvoice.py     # [legacy] CosyVoice2/3 (non utilisé)
-    │
-    ├── llm/
-    │   ├── base.py          # Interface LLM abstraite
-    │   ├── ollama.py        # Client Ollama streaming, filtre <think>
-    │   └── gemini.py        # Client Gemini streaming, function calling, Google Search
-    │
-    ├── memory/
-    │   └── store.py         # SQLite, extraction de faits, threading.Lock
-    │
-    ├── wakeword/
-    │   └── detector.py      # OpenWakeWord ONNX, normalisation conditionnelle
-    │
-    ├── tools/
-    │   ├── base.py          # Protocol Tool (name, description, parameters, execute)
-    │   ├── registry.py      # ToolRegistry : register, dispatch, to_gemini_declarations
-    │   ├── datetime_tool.py # Date/heure locale (mapping FR thread-safe)
-    │   └── system_tool.py   # Info système (RAM, VRAM, disk, uptime)
-    │
-    ├── api/
-    │   └── server.py        # Serveur HTTP aiohttp (port 8741)
-    │
-    └── gui/
-        ├── app.py           # AethonApp : orchestre tray + fenêtre + worker
-        ├── main_window.py   # Layout : titre → orb → état → level meter → chat → boutons
-        ├── settings_dialog.py  # QDialog 4 onglets (Persona, Intelligence, Tools, Advanced)
-        ├── worker.py        # QThread encapsulant AethonPipeline
-        ├── tray.py          # Icône système avec couleurs d'état
-        ├── state.py         # Enum PipelineState + couleurs Catppuccin
-        ├── theme.py         # QSS Catppuccin Mocha
-        └── widgets/
-            ├── orb_widget.py      # QPainter 4-layer render + QPropertyAnimation
-            ├── chat_widget.py     # QScrollArea + ChatBubble QFrames (max 100)
-            ├── toast.py           # Notifications non-bloquantes (opacity animation)
-            ├── level_meter.py     # Barre de niveau audio micro
-            ├── persona_tab.py     # Identité, voix (Kokoro/Chatterbox), instructions
-            ├── intelligence_tab.py # Backend LLM, modèle, température, tokens
-            ├── tools_tab.py       # Function calling, Google Search, API server
-            └── advanced_tab.py    # STT, audio devices, mémoire, gains
+├── server/                  # Backend FastAPI + WebSocket
+│   ├── main.py              # Point d'entrée uvicorn
+│   ├── dependencies.py      # Injection de dépendances
+│   ├── core/
+│   │   ├── pipeline_bridge.py  # Bridge pipeline ↔ WebSocket
+│   │   └── connection_manager.py  # Gestion connexions WS
+│   ├── models/
+│   │   └── messages.py      # Schémas Pydantic
+│   └── routes/
+│       ├── ws.py            # WebSocket streaming
+│       ├── config.py        # CRUD config REST
+│       ├── voices.py        # Gestion voix REST
+│       └── devices.py       # Audio devices REST
+│
+├── web/                     # Frontend React + Vite + TypeScript
+│   ├── src/
+│   │   ├── App.tsx
+│   │   ├── components/      # Orb, Chat, Controls, Settings
+│   │   ├── stores/          # Zustand (config, connection, pipeline)
+│   │   ├── types/           # TypeScript interfaces
+│   │   └── lib/             # Theme, constants
+│   └── package.json
+│
+├── voices/                  # Échantillons voix pour clonage
+└── third_party/
+    └── CosyVoice/           # [legacy] Repo CosyVoice2
 ```
 
 ---
@@ -111,14 +113,14 @@ STOPPED → LOADING → IDLE ⇄ LISTENING → THINKING → SPEAKING → IDLE
                                                      IDLE
 ```
 
-| État | Couleur Catppuccin | Description |
-|------|-------------------|-------------|
-| `STOPPED` | Gris `#6c7086` | Pipeline arrêté |
-| `LOADING` | Orange `#fab387` | Chargement modèles (~30s premier lancement) |
-| `IDLE` | Vert `#a6e3a1` | Attend parole ou wake word |
-| `LISTENING` | Bleu `#89b4fa` | Capture parole en cours |
-| `THINKING` | Violet `#cba6f7` | STT + génération LLM |
-| `SPEAKING` | Cyan `#94e2d5` | Synthèse TTS + lecture audio |
+| État | Description |
+|------|-------------|
+| `STOPPED` | Pipeline arrêté |
+| `LOADING` | Chargement modèles (~30s premier lancement) |
+| `IDLE` | Attend parole ou wake word |
+| `LISTENING` | Capture parole en cours |
+| `THINKING` | STT + génération LLM |
+| `SPEAKING` | Synthèse TTS + lecture audio |
 
 ---
 
@@ -128,15 +130,15 @@ STOPPED → LOADING → IDLE ⇄ LISTENING → THINKING → SPEAKING → IDLE
 
 > **Kokoro TTS** : doit être chargé sur **CPU** (`device="cpu"` + `torch.device("cpu")`). Sur GPU → crash `cudnnGetLibConfig` (exit 127).
 
-> **Chatterbox TTS** : `ChatterboxMultilingualTTS.from_pretrained(device="cuda")` — 23 langues natives (français via `language_id="fr"`). Clonage zero-shot via `audio_prompt_path`. Sample rate = 22050 Hz (vs 24000 pour Kokoro) → le pipeline utilise `self.tts.SAMPLE_RATE` dynamique. Paramètres d'émotion (`exaggeration`, `cfg_weight`) non supportés par tous les checkpoints → détection automatique avec cache. Génération en une passe (pas de streaming interne).
+> **Chatterbox TTS** : `ChatterboxMultilingualTTS.from_pretrained(device="cuda")` — 23 langues natives (français via `language_id="fr"`). Clonage zero-shot via `audio_prompt_path`. Sample rate = 22050 Hz (vs 24000 pour Kokoro) → le pipeline utilise `self.tts.SAMPLE_RATE` dynamique.
 
-> **Gemini** : Google Search et function calling sont **mutuellement exclusifs** dans l'API `generateContent`. Quand les deux sont activés, Google Search est priorisé (plus utile pour un assistant vocal). Les function declarations ne sont utilisées que si Google Search est désactivé.
+> **Gemini** : Google Search et function calling sont **mutuellement exclusifs** dans l'API `generateContent`. Quand les deux sont activés, Google Search est priorisé.
 
 > **AGC** : les chunks silencieux (RMS < 0.002) sont **ignorés** dans le calcul du gain pour éviter l'explosion du gain (55x → saturation). Max gain = 20x.
 
 > **PyTorch** : utiliser l'index **cu124** (pas cu121) pour éviter les incompatibilités cuDNN.
 
-> **espeak-ng** : doit être dans le PATH. Auto-ajouté par `main.py` et `app.py` depuis `C:\Program Files\eSpeak NG`.
+> **espeak-ng** : doit être dans le PATH. Auto-ajouté par `main.py` depuis `C:\Program Files\eSpeak NG`.
 
 > **Windows UTF-8** : `sys.stdout.reconfigure(encoding="utf-8", errors="replace")` requis.
 
@@ -157,13 +159,7 @@ AethonConfig
 └── tools: ToolsConfig       # DateTime, SystemInfo, API server, port
 ```
 
-Sauvegarde en `aethon_config.json`. Config modifiable via GUI (stop → save → restart pipeline).
-
-### PersonaConfig — Système d'instructions toggleables
-
-Chaque instruction (`Instruction` dataclass) a un `id`, `label`, `content`, `enabled`, `builtin`.
-Instructions par défaut : concise, no_emoji, no_code, spell_numbers, no_abbrev, humor, tutoiement, vouvoiement.
-Le system prompt est auto-généré par `PersonaConfig.build_system_prompt()` depuis les instructions actives.
+Sauvegarde en `aethon_config.json`. Config modifiable via l'interface web (settings drawer).
 
 ---
 
@@ -172,8 +168,12 @@ Le system prompt est auto-généré par `PersonaConfig.build_system_prompt()` de
 ```bash
 venv\Scripts\activate
 
-# Mode GUI (recommandé)
-python gui_main.py
+# Web GUI (recommandé)
+start_aethon_web.bat          # Lance backend + frontend
+
+# Ou manuellement
+python server/main.py         # Backend (port 8765)
+cd web && npm run dev          # Frontend (port 5173)
 
 # Mode CLI
 python main.py --no-wake-word           # Écoute permanente
@@ -189,7 +189,7 @@ python main.py -v                      # Debug
 - **Langue du code** : docstrings et commentaires en **français**, noms de variables/fonctions en **anglais**
 - **Config** : dataclasses dans `aethon/config.py`, jamais de valeurs hardcodées ailleurs
 - **Logs** : `logging` standard, un logger par module (`log = logging.getLogger(__name__)`)
-- **Threading** : signaux Qt (pyqtSignal) pour la communication GUI ↔ pipeline, jamais d'accès direct cross-thread
+- **Threading** : pipeline dans un thread dédié, communication via WebSocket (server ↔ client)
 - **Imports lourds** : lazy loading dans les méthodes `load()` (torch, kokoro, faster_whisper, google.genai)
 - **Nettoyage** : chaque composant a une méthode `cleanup()` / `unload()` appelée à l'arrêt
 - **Backends switchables** : LLM et TTS utilisent des factories dans `pipeline.py` (`_create_llm`, `_create_tts`)
@@ -200,20 +200,18 @@ python main.py -v                      # Debug
 ## Threading
 
 ```
-GUI Thread (QApplication.exec)          Pipeline Thread (QThread)
+Main Thread (uvicorn)          Pipeline Thread (threading.Thread)
     │                                        │
-    │  start_requested ─────────────►  PipelineWorker.run()
+    │  WebSocket connect ──────────►  PipelineBridge.start()
     │                                        │
-    │  ◄──── state_changed(PipelineState)    │
-    │  ◄──── transcript_received(str)        │
-    │  ◄──── response_received(str)          │
-    │  ◄──── audio_level_changed(float)      │  → orb + level meter
+    │  ◄──── state_changed (WS msg)          │
+    │  ◄──── transcript (WS msg)             │
+    │  ◄──── response (WS msg)               │
+    │  ◄──── audio_level (WS msg)            │
     │                                        │
-    │  stop_requested ──────────────►  pipeline._running = False
+    │  WebSocket disconnect ────────►  pipeline.stop()
     │                                        │
-    └── Signaux Qt (thread-safe) ────────────┘
-         │
-         └── API Thread (aiohttp daemon, si activé)
+    └── WebSocket (async ↔ sync bridge) ─────┘
 ```
 
 ---
